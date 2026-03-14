@@ -1,266 +1,128 @@
-# DevOps Task API
+# simple-app
 
-Полнофункциональный REST API для задачи DevOps с полным циклом CI/CD, контейнеризацией и автоматизацией развертывания.
+**simple-app** — REST API приложение для управления пользователями, разработанное с использованием FastAPI. Проект включает полную DevOps инфраструктуру: Docker, Docker Compose, Ansible развертывание, bash-скрипты диагностики и автоматизацию через Makefile.
 
-## 📋 Содержание
+## Требования
 
-- [О проекте](#о-проекте)
-- [Технологический стек](#технологический-стек)
-- [Структура проекта](#структура-проекта)
-- [Быстрый старт](#быстрый-старт)
-- [Развертывание](#развертывание)
-- [API Documentation](#api-documentation)
-- [Тестирование](#тестирование)
-- [CI/CD](#cicd)
-- [Мониторинг и диагностика](#мониторинг-и-диагностика)
-- [Вклад в проект](#вклад-в-проект)
+- **Python**: 3.12+
+- **Docker**: последняя стабильная версия
+- **Docker Compose**: последняя стабильная версия
+- **Ansible**: 2.9+
+- **Make** (опционально, для использования Makefile)
 
-## 🎯 О проекте
+## Быстрый старт
 
-DevOps Task API - это учебный проект, демонстрирующий полный цикл разработки и развертывания современного REST API с использованием:
+### Локальный запуск приложения
 
-- **FastAPI** - современный веб-фреймворк для Python
-- **Docker** - контейнеризация приложения
-- **Docker Compose** - оркестрация контейнеров
-- **Ansible** - автоматизация развертывания
-- **GitHub Actions** - CI/CD пайплайн
-- **Make** - управление задачами
-
-## 🛠️ Технологический стек
-
-| Технология | Версия | Назначение |
-|------------|--------|------------|
-| Python | 3.11+ | Язык программирования |
-| FastAPI | 0.104+ | REST API фреймворк |
-| Uvicorn | 0.24+ | ASGI сервер |
-| Docker | latest | Контейнеризация |
-| Docker Compose | v2+ | Оркестрация |
-| Ansible | 2.9+ | Автоматизация |
-| Pytest | 7.4+ | Тестирование |
-| GitHub Actions | - | CI/CD |
-
-## 📁 Структура проекта
-
-```
-.
-├── app/                      # Python приложение
-│   ├── main.py              # Основной файл FastAPI приложения
-│   ├── requirements.txt      # Зависимости Python
-│   └── tests/
-│       └── test_app.py       # Тесты REST API
-├── scripts/                  # Bash скрипты
-│   └── server-info.sh        # Скрипт диагностики сервера
-├── ansible/                  # Ansible конфигурация
-│   ├── playbook.yml          # Основной playbook
-│   ├── inventory.ini         # Инвентарь хостов
-│   └── roles/
-│       ├── docker/           # Роль установки Docker
-│       │   └── tasks/main.yml
-│       └── app/              # Роль развертывания приложения
-│           └── tasks/main.yml
-├── .github/
-│   └── workflows/
-│       └── build.yml         # GitHub Actions CI/CD
-├── Dockerfile                # Docker образ
-├── docker-compose.yml        # Docker Compose конфигурация
-├── Makefile                  # Make команды
-└── README.md                 # Документация
-```
-
-## 🚀 Быстрый старт
-
-### Предварительные требования
-
-- Python 3.11+
-- Docker & Docker Compose
-- Make (опционально)
-
-### Локальный запуск
-
-1. **Клонируйте репозиторий:**
-```bash
-git clone <repository-url>
-cd tasks_Devops
-```
-
-2. **Установите зависимости:**
+1. Установка зависимостей:
 ```bash
 pip install -r app/requirements.txt
 ```
 
-3. **Запустите приложение:**
+2. Запуск приложения:
+```bash
+python app/main.py
+```
+
+Или с использованием виртуального окружения:
 ```bash
 cd app
+python3 -m venv .venv
+source .venv/bin/activate  # Linux/Mac
+# или .venv\Scripts\activate  # Windows
+pip install -r requirements.txt
 uvicorn main:app --host 0.0.0.0 --port 5000 --reload
 ```
 
-Или используйте Make:
+Приложение будет доступно по адресу: http://localhost:5000
+
+### Запуск через Docker Compose
+
+1. Сборка и запуск контейнеров:
 ```bash
-make run
-```
-
-4. **Откройте в браузере:**
-- API: http://localhost:5000
-- Документация (Swagger UI): http://localhost:5000/docs
-- ReDoc: http://localhost:5000/redoc
-
-## 🐳 Развертывание
-
-### С помощью Docker Compose
-
-```bash
-# Сборка и запуск
 docker-compose up -d
+```
 
-# Просмотр логов
+2. Проверка статуса:
+```bash
+docker-compose ps
+```
+
+3. Просмотр логов:
+```bash
 docker-compose logs -f
+```
 
-# Остановка
+4. Остановка:
+```bash
 docker-compose down
-
-# Запуск тестов
-docker-compose run test
 ```
 
-### С помощью Ansible
+Приложение будет доступно по адресу: http://localhost:5000
 
+## API Endpoints
+
+### 1. Корневой эндпоинт
+
+**GET /** - Приветственное сообщение
+
+**Пример curl:**
 ```bash
-# Установка и настройка на целевом хосте
-ansible-playbook -i ansible/inventory.ini ansible/playbook.yml
-
-# С указанием пользователя
-ansible-playbook -i ansible/inventory.ini ansible/playbook.yml --ask-become-pass
+curl http://localhost:5000/
 ```
 
-## 📚 API Documentation
-
-### Endpoints
-
-| Метод | Путь | Описание |
-|-------|------|----------|
-| GET | `/` | Корневой эндпоинт |
-| GET | `/health` | Проверка здоровья сервиса |
-| GET | `/api/users` | Получить всех пользователей |
-| GET | `/api/users/{id}` | Получить пользователя по ID |
-| POST | `/api/users` | Создать нового пользователя |
-| PUT | `/api/users/{id}` | Обновить пользователя |
-| DELETE | `/api/users/{id}` | Удалить пользователя |
-
-### Примеры запросов
-
-**Получить всех пользователей:**
-```bash
-curl http://localhost:5000/api/users
+**Ответ:**
+```json
+{
+  "message": "Hello, World!"
+}
 ```
 
-**Создать пользователя:**
-```bash
-curl -X POST "http://localhost:8000/api/users" \
-  -H "Content-Type: application/json" \
-  -d '{"id": 3, "name": "Charlie"}'
-```
+### 2. Health Check
 
-**Проверка здоровья:**
+**GET /health** - Проверка здоровья приложения
+
+**Пример curl:**
 ```bash
 curl http://localhost:5000/health
 ```
 
-## 🧪 Тестирование
+**Ответ:**
+```json
+{
+  "status": "ok"
+}
+```
 
-### Локальные тесты
+### 3. Получение списка пользователей
 
+**GET /api/users** - Возвращает всех пользователей
+
+**Пример curl:**
 ```bash
-cd app
-python -m pytest tests/test_app.py -v
+curl http://localhost:5000/api/users
 ```
 
-### Тесты через Docker
+**Ответ:**
+```json
+{
+  "users": [
+    {"id": 1, "name": "Alex"},
+    {"id": 2, "name": "Boris"}
+  ]
+}
+```
 
+### 4. Получение пользователя по ID
+
+**GET /api/users/{user_id}** - Возвращает конкретного пользователя
+
+**Пример curl:**
 ```bash
-docker-compose run test
+curl http://localhost:5000/api/users/1
 ```
 
-### Покрытие тестами
-
-Проект включает полный набор тестов:
-- ✅ Тесты CRUD операций
-- ✅ Тесты обработки ошибок
-- ✅ Тесты валидации данных
-- ✅ Тесты health check
-
-## 🔄 CI/CD
-
-### GitHub Actions Workflow
-
-Workflow состоит из трех этапов:
-
-1. **Test** - запуск тестов и линтинг
-2. **Build** - сборка Docker образа
-3. **Deploy** - деплой на продакшен (только для main ветки)
-
-### Запуск workflow
-
-Workflow автоматически запускается при:
-- Push в ветки `main` или `develop`
-- Pull Request в ветку `main`
-
-### Мониторинг статуса
-
-Статус workflow отображается на странице репозитория:
-- ✅ Все этапы пройдены
-- ❌ Ошибка на одном из этапов
-- ⏳ В процессе выполнения
-
-## 🔧 Makefile команды
-
-| Команда | Описание |
-|---------|----------|
-| `make run` | Запуск приложения в development режиме |
-| `make test` | Запуск тестов |
-| `make lint` | Проверка кода линтером |
-| `make docker-build` | Сборка Docker образа |
-| `make docker-up` | Запуск через Docker Compose |
-| `make docker-down` | Остановка контейнеров |
-| `make ansible-deploy` | Развертывание через Ansible |
-| `make clean` | Очистка артефактов |
-| `make help` | Показать все команды |
-
-## 🩺 Мониторинг и диагностика
-
-### Bash скрипт диагностики
-
-Скрипт `scripts/server-info.sh` предоставляет полную информацию о системе:
-
-```bash
-# Запуск диагностики
-./scripts/server-info.sh
-```
-
-Скрипт проверяет:
-- ✅ Информацию о системе
-- ✅ Использование ресурсов (CPU, Memory, Disk)
-- ✅ Установленные инструменты (Docker, Python, Ansible)
-- ✅ Статус портов
-- ✅ Запущенные контейнеры
-- ✅ Файлы проекта
-- ✅ Git статус
-
-## 📊 API Endpoints
-
-### Полный список эндпоинтов
-
-```
-GET    /                    # Корневой эндпоинт
-GET    /health              # Health check
-GET    /api/users           # Получить всех пользователей
-GET    /api/users/{id}      # Получить пользователя по ID
-POST   /api/users           # Создать пользователя
-PUT    /api/users/{id}      # Обновить пользователя
-DELETE /api/users/{id}      # Удалить пользователя
-```
-
-### Модель данных
-
+**Ответ (успех):**
 ```json
 {
   "id": 1,
@@ -268,45 +130,516 @@ DELETE /api/users/{id}      # Удалить пользователя
 }
 ```
 
-## 🔒 Безопасность
+**Ответ (ошибка 404):**
+```json
+{
+  "detail": "User not found"
+}
+```
 
-- ✅ Валидация входных данных через Pydantic
-- ✅ Обработка ошибок с корректными HTTP статусами
-- ✅ Docker изоляция контейнеров
-- ✅ Минимальные права в контейнерах
+### 5. Создание пользователя
 
-## 📈 Масштабирование
+**POST /api/users** - Создает нового пользователя
 
-Проект готов к масштабированию:
+**Пример curl:**
+```bash
+curl -X POST http://localhost:5000/api/users \
+  -H "Content-Type: application/json" \
+  -d '{"id": 3, "name": "Charlie"}'
+```
 
-1. **Горизонтальное масштабирование:**
-   - Настройка реплика в docker-compose.yml
-   - Load balancer (Nginx, Traefik)
+**Ответ (успех, 201):**
+```json
+{
+  "id": 3,
+  "name": "Charlie"
+}
+```
 
-2. **Вертикальное масштабирование:**
-   - Увеличение ресурсов контейнера
-   - Оптимизация приложения
+**Ответ (ошибка 400 - пользователь уже существует):**
+```json
+{
+  "detail": "User with this ID already exists"
+}
+```
 
-3. **Кластерное развертывание:**
-   - Kubernetes манифесты
-   - Helm charts
+### 6. Удаление пользователя
 
-## 🤝 Вклад в проект
+**DELETE /api/users/{user_id}** - Удаляет пользователя
 
-1. Fork репозитория
-2. Создайте feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit изменения (`git commit -m 'Add some AmazingFeature'`)
-4. Push в branch (`git push origin feature/AmazingFeature`)
-5. Откройте Pull Request
+**Пример curl:**
+```bash
+curl -X DELETE http://localhost:5000/api/users/3
+```
 
-## 📝 Лицензия
+**Ответ (успех):**
+```json
+{
+  "message": "User 3 deleted",
+  "user": {"id": 3, "name": "Charlie"}
+}
+```
 
-Это учебный проект. Используйте свободно.
+**Ответ (ошибка 404):**
+```json
+{
+  "detail": "User not found"
+}
+```
 
-## 👨‍💻 Автор
+### Автодокументация Swagger
 
-DevOps Task API - учебный проект для демонстрации современных практик DevOps.
+Интерактивная документация API доступна по адресу: http://localhost:5000/docs
+
+## Bash-скрипт
+
+### server-info.sh - Скрипт диагностики сервера
+
+Скрипт собирает подробную информацию о системе и проверяет доступность сервисов.
+
+**Описание:**
+- Информация о системе (OS, ядро, хостнейм, аптайм, архитектура)
+- Использование ресурсов (CPU, Memory, Disk)
+- Проверка наличия необходимых команд (docker, python, ansible и др.)
+- Информация о Docker (версии, запущенные контейнеры, образы)
+- Проверка сетевых интерфейсов и портов
+- Проверка Python окружения
+- Проверка доступности HTTP сервисов
+
+**Использование:**
+
+Только системная информация:
+```bash
+./scripts/server-info.sh
+```
+
+С проверкой HTTP сервисов:
+```bash
+./scripts/server-info.sh http://localhost:5000/health
+```
+
+С проверкой нескольких сервисов:
+```bash
+./scripts/server-info.sh http://localhost:5000/health http://localhost:5000/docs
+```
+
+**Параметры:**
+- `--help` или `-h` - показать справку
+
+**Возвращаемые коды:**
+- `0` - Все сервисы доступны (или не указано URL для проверки)
+- `1` - Один или более сервисов недоступны
+
+**Лог-файл:**
+Скрипт сохраняет подробный лог в `/tmp/server-info-YYYYMMDD-HHMMSS.log`
+
+## Тестирование
+
+### Запуск тестов локально
+
+1. Установите зависимости (если не установлены):
+```bash
+pip install -r app/requirements.txt
+```
+
+2. Запустите тесты:
+```bash
+pytest app/tests/test_app.py -v
+```
+
+Или с использованием Makefile:
+```bash
+make test
+```
+
+### Запуск тестов через Docker
+
+```bash
+docker-compose up test
+```
+
+Или:
+```bash
+docker-compose run --rm test
+```
+
+Тесты покрывают:
+- Корневой эндпоинт
+- Health check
+- Получение списка пользователей
+- Получение пользователя по ID
+- Получение несуществующего пользователя (404)
+- Создание пользователя
+- Создание дубликата пользователя (400)
+- Удаление пользователя
+
+## Ansible развертывание
+
+### Структура Ansible
+
+```
+ansible/
+├── inventory.ini          # Инвентарь хостов
+├── playbook.yml           # Основной playbook
+└── roles/
+    ├── docker/           # Роль установки Docker
+    │   └── tasks/
+    │       └── main.yml
+    └── app/              # Роль развертывания приложения
+        └── tasks/
+            └── main.yml
+```
+
+### Подготовка инвентаря
+
+Отредактируйте `ansible/inventory.ini`:
+
+```ini
+[webservers]
+app-server-1 ansible_host=ВАШ_IP ansible_user=ВАШ_ПОЛЬЗОВАТЕЛЬ
+```
+
+### Запуск развертывания
+
+1. Проверка синтаксиса playbook:
+```bash
+ansible-playbook -i ansible/inventory.ini ansible/playbook.yml --syntax-check
+```
+
+2. Dry-run (проверка без внесения изменений):
+```bash
+ansible-playbook -i ansible/inventory.ini ansible/playbook.yml --check
+```
+
+3. Полное развертывание:
+```bash
+ansible-playbook -i ansible/inventory.ini ansible/playbook.yml
+```
+
+Или с использованием Makefile:
+```bash
+make ansible-run
+```
+
+### Что делает Ansible:
+
+1. **Роль docker**:
+   - Устанавливает Docker и Docker Compose
+   - Настраивает службу Docker
+   - Добавляет пользователя в группу docker
+
+2. **Роль app**:
+   - Создает директорию `/opt/simple-app`
+   - Копирует файлы приложения на сервер
+   - Собирает Docker образ
+   - Запускает контейнеры через docker-compose
+   - Проверяет здоровье приложения
+
+### Требования к целевому серверу
+
+- Ubuntu/Debian (поддерживаются другие дистрибутивы с адаптацией)
+- SSH доступ
+- Sudo права для пользователя
+- Подключение к интернету (для загрузки пакетов)
+
+## Структура проекта
+
+```
+simple-app/
+├── .dockerignore              # Игнорируемые файлы для Docker
+├── .gitignore                 # Игнорируемые файлы для Git
+├── README.md                  # Эта документация
+├── Dockerfile                 # Docker образ приложения
+├── docker-compose.yml         # Docker Compose конфигурация
+├── Makefile                   # Make цели для автоматизации
+│
+├── app/                       # Исходный код приложения
+│   ├── __init__.py
+│   ├── main.py               # FastAPI приложение
+│   ├── requirements.txt      # Python зависимости
+│   └── tests/
+│       ├── __init__.py
+│       └── test_app.py       # Тесты
+│
+├── ansible/                   # Ansible конфигурация
+│   ├── inventory.ini          # Инвентарь хостов
+│   ├── playbook.yml           # Основной playbook
+│   └── roles/
+│       ├── docker/            # Роль установки Docker
+│       │   └── tasks/
+│       │       └── main.yml
+│       └── app/               # Роль развертывания приложения
+│           └── tasks/
+│               └── main.yml
+│
+└── scripts/                   # Bash скрипты
+    └── server-info.sh         # Скрипт диагностики сервера
+```
+
+## Makefile команды
+
+Для удобства проект включает Makefile с готовыми командами:
+
+### Основные команды
+- `make help` - показать все доступные команды
+- `make run` - запуск приложения в development режиме
+- `make test` - запуск тестов
+- `make lint` - проверка кода (flake8 + shellcheck)
+- `make install` - установка зависимостей
+
+### Docker команды
+- `make docker-build` - сборка Docker образа
+- `make docker-run` - запуск контейнера через docker
+- `make compose-up` - запуск через docker-compose
+- `make compose-down` - остановка контейнеров
+- `make compose-logs` - просмотр логов
+- `make docker-clean` - очистка Docker ресурсов
+
+### Ansible команды
+- `make ansible-check` - проверка синтаксиса playbook
+- `make ansible-dry` - dry-run Ansible
+- `make ansible-run` - запуск playbook
+
+### Утилиты
+- `make server-info` - запуск скрипта диагностики
+- `make clean` - очистка временных файлов
+- `make reset` - полная очистка и пересборка
+- `make status` - проверка статуса контейнеров и приложения
+- `make setup` - быстрая настройка проекта
+
+## Troubleshooting
+
+### Проблема: Port 5000 already in use
+
+**Симптомы:**
+```
+Error: Failed to start application: port is already allocated
+```
+
+**Решение:**
+1. Найдите процесс, использующий порт:
+```bash
+lsof -i :5000
+```
+
+2. Остановите процесс:
+```bash
+kill -9 <PID>
+```
+
+Или измените порт в `docker-compose.yml` и `Dockerfile`:
+```yaml
+ports:
+  - "5001:5000"  # хост:контейнер
+```
+
+### Проблема: Docker permission denied
+
+**Симптомы:**
+```
+Got permission denied while trying to connect to the Docker daemon socket
+```
+
+**Решение:**
+1. Добавьте пользователя в группу docker:
+```bash
+sudo usermod -aG docker $USER
+```
+
+2. Перезайдите в систему или выполните:
+```bash
+newgrp docker
+```
+
+### Проблема: Ansible connection failed
+
+**Симптомы:**
+```
+UNREACHABLE! => {"changed": false, "msg": "Failed to connect to the host via ssh"}
+```
+
+**Решение:**
+1. Проверьте SSH подключение:
+```bash
+ssh ВАШ_ПОЛЬЗОВАТЕЛЬ@ВАШ_IP
+```
+
+2. Убедитесь, что в `ansible/inventory.ini` указаны правильные:
+   - `ansible_host` - IP адрес сервера
+   - `ansible_user` - пользователь с sudo правами
+
+3. Проверьте, что на сервере установлен Python:
+```bash
+ansible all -i ansible/inventory.ini -m raw -a "python3 --version"
+```
+
+### Проблема: Tests fail with connection errors
+
+**Симптомы:**
+```
+requests.exceptions.ConnectionError
+```
+
+**Решение:**
+Убедитесь, что приложение запущено перед выполнением тестов:
+```bash
+make run
+# или
+docker-compose up -d
+```
+
+### Проблема: Docker build fails
+
+**Симптомы:**
+```
+ERROR: failed to solve: ...
+```
+
+**Решение:**
+1. Очистите Docker кэш:
+```bash
+docker system prune -af
+```
+
+2. Пересоберите образ:
+```bash
+make docker-build
+# или
+docker-compose build --no-cache
+```
+
+### Проблема: Health check fails in Ansible
+
+**Симптомы:**
+```
+FAILED! => {"changed": false, "msg": "Status code was 404 and not 200"}
+```
+
+**Решение:**
+1. Проверьте, что контейнер запущен:
+```bash
+docker-compose ps
+```
+
+2. Проверьте логи:
+```bash
+docker-compose logs app
+```
+
+3. Убедитесь, что порт 5000 открыт и приложение слушает на 0.0.0.0
+
+### Проблема: Bash script shows colored output incorrectly
+
+**Симптомы:**
+Отображаются escape-последовательности вместо цветов
+
+**Решение:**
+Скрипт автоматически определяет поддержку цветов. Если проблема persists, принудительно отключите цвета:
+```bash
+# Редактируйте скрипт, закомментируйте переменные цветов
+# RED='\033[0;31m' -> #RED='\033[0;31m'
+```
+
+### Проблема: Python dependencies conflict
+
+**Симптомы:**
+```
+ERROR: Cannot install -r app/requirements.txt (line 1) and ...
+```
+
+**Решение:**
+1. Очистите кэш pip:
+```bash
+pip cache purge
+```
+
+2. Используйте виртуальное окружение:
+```bash
+make clean
+make install
+```
+
+### Проблема: Make commands not found
+
+**Симптомы:**
+```
+make: command not found
+```
+
+**Решение:**
+Установите make:
+- Ubuntu/Debian: `sudo apt-get install build-essential`
+- CentOS/RHEL: `sudo yum groupinstall "Development Tools"`
+- macOS: `xcode-select --install`
+
+### Проблема: Slow Docker builds
+
+**Решение:**
+1. Используйте multi-stage builds (не реализовано в текущем проекте)
+2. Кэшируйте зависимости - Dockerfile уже оптимизирован для кэширования слоя pip
+3. Используйте docker-compose build с опцией `--parallel`
+
+### Проверка работоспособности
+
+После развертывания проверьте:
+
+1. Приложение отвечает:
+```bash
+curl http://localhost:5000/health
+```
+
+2. API доступен:
+```bash
+curl http://localhost:5000/api/users
+```
+
+3. Docker контейнеры работают:
+```bash
+docker-compose ps
+```
+
+4. Ansible развертывание успешно:
+```bash
+ansible-playbook -i ansible/inventory.ini ansible/playbook.yml
+```
+
+## Дополнительная информация
+
+### Версии компонентов
+
+- **FastAPI**: 0.104.1
+- **Uvicorn**: 0.24.0
+- **Pydantic**: 2.5.0
+- **Python**: 3.12+
+
+### Безопасность
+
+- Приложение запускается с `PYTHONUNBUFFERED=1` для корректного логирования
+- Docker образ использует slim-версию Python для уменьшения размера
+- Health check реализован для мониторинга состояния
+
+### Мониторинг
+
+- Health endpoint: `GET /health`
+- Логи Docker: `docker-compose logs -f`
+- Логи приложения: `docker-compose logs app`
+
+### Разработка
+
+Для разработки рекомендуется:
+1. Использовать `uvicorn main:app --reload` для автоматической перезагрузки
+2. Запускать тесты при каждом коммите
+3. Использовать pre-commit хуки для линтинга
+4. Проверять код через `make lint`
+
+## Контакты и поддержка
+
+Для вопросов и предложений создайте issue в репозитории проекта.
 
 ---
 
-**Примечание:** Этот проект создан в образовательных целях и демонстрирует полный цикл разработки, тестирования и развертывания REST API с использованием современных DevOps инструментов.
+**Лицензия**: MIT
+
+**Автор**: gorodkovden
+
+**Версия**: 1.0.0

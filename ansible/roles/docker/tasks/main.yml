@@ -33,12 +33,18 @@
     state: present
     update_cache: yes
   when: ansible_os_family == "Debian"
-
 - name: Запуск и включение Docker
   service:
     name: docker
     state: started
     enabled: yes
+
+- name: Добавление текущего пользователя в группу docker
+  user:
+    name: "{{ ansible_user }}"
+    groups: docker
+    append: yes
+
 
 - name: Установка Docker Compose (если не установлен через плагин)
   get_url:

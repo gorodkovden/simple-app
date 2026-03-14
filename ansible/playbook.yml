@@ -1,10 +1,10 @@
 ---
-- name: Развертывание DevOps Task API
-  hosts: all
+- name: Развертывание simple-app
+  hosts: webservers
   become: yes
   vars:
-    app_dir: /opt/devops-task-api
-    python_version: "3.11"
+    app_dir: /opt/simple-app
+    python_version: "3.12"
 
   pre_tasks:
     - name: Обновление кэша apt

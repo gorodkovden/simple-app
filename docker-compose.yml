@@ -1,9 +1,9 @@
-version: '3.8'
+
 
 services:
   app:
     build: .
-    container_name: devops-task-api
+    container_name: simple-app
     ports:
       - "5000:5000"
     environment:
@@ -11,7 +11,7 @@ services:
     volumes:
       - ./app:/app
       - ./scripts:/scripts
-    command: uvicorn main:app --host 0.0.0.0 --port 5000 --reload
+    command: uvicorn main:app --host 0.0.0.0 --port 5000
     networks:
       - app-network
     healthcheck:
@@ -24,7 +24,7 @@ services:
   # Сервис для запуска тестов
   test:
     build: .
-    container_name: devops-task-api-test
+    container_name: simple-app-tests
     volumes:
       - ./app:/app
       - ./scripts:/scripts

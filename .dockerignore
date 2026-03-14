@@ -1,0 +1,61 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.log
+.git
+.mypy_cache
+.pytest_cache
+.hypothesis
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project specific
+app/tests/
+app/__pycache__/
+scripts/*.log
+*.log
+
+# Docker
+docker-compose.override.yml
+
+# Git
+.git/
+.gitignore
+
+# Documentation
+README.md
+docs/
+
+# Ansible
+ansible/
+.inventory/
+
+# CI/CD
+.github/
+
+# Makefile
+Makefile

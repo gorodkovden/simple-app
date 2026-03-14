@@ -7,7 +7,7 @@ WORKDIR /app
 # Устанавливаем системные зависимости
 RUN apt-get update && apt-get install -y \
     gcc \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* 
 
 # Копируем файл с зависимостями
 COPY app/requirements.txt .
@@ -26,6 +26,11 @@ RUN chmod +x /scripts/server-info.sh
 
 # Экспонируем порт
 EXPOSE 5000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost:5000/health || exit 1
+
 
 # Запускаем приложение
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "5000"]

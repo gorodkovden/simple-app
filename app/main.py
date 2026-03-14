@@ -4,7 +4,7 @@ from typing import List
 import uvicorn
 
 
-app = FastAPI(title="DevOps Task API", version="1.0.0")
+app = FastAPI(title="simple-app", version="1.0.0")
 
 
 # Модель данных
@@ -30,12 +30,12 @@ def health_check():
     return {"status": "ok"}
 
 
-@app.get("/api/users", response_model=List[User])
+@app.get("/api/users")
 def get_users():
-    return users_db
+    return {"users": users_db}
 
 
-@app.get("/api/users/{user_id}", response_model=User)
+@app.get("/api/users/{user_id}")
 def get_user(user_id: int):
     for user in users_db:
         if user.id == user_id:
@@ -43,22 +43,13 @@ def get_user(user_id: int):
     raise HTTPException(status_code=404, detail="User not found")
 
 
-@app.post("/api/users", response_model=User)
+@app.post("/api/users", status_code=201)
 def create_user(user: User):
     for existing_user in users_db:
         if existing_user.id == user.id:
             raise HTTPException(status_code=400, detail="User with this ID already exists")
     users_db.append(user)
     return user
-
-
-@app.put("/api/users/{user_id}", response_model=User)
-def update_user(user_id: int, user: User):
-    for idx, existing_user in enumerate(users_db):
-        if existing_user.id == user_id:
-            users_db[idx] = user
-            return user
-    raise HTTPException(status_code=404, detail="User not found")
 
 
 @app.delete("/api/users/{user_id}")

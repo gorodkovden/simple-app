@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    container_name: devops-task-api
+    ports:
+      - "5000:5000"
+    environment:
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - ./app:/app
+      - ./scripts:/scripts
+    command: uvicorn main:app --host 0.0.0.0 --port 5000 --reload
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Сервис для запуска тестов
+  test:
+    build: .
+    container_name: devops-task-api-test
+    volumes:
+      - ./app:/app
+      - ./scripts:/scripts
+    command: >
+      sh -c "
+      pip install -r requirements.txt &&
+      python -m pytest app/tests/test_app.py -v
+      "
+    networks:
+      - app-network
+    depends_on:
+      - app
+
+networks:
+  app-network:
+    driver: bridge

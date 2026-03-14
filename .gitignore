@@ -1,0 +1,41 @@
+# Виртуальное окружение Python
+venv/
+env/
+.venv/
+
+# Python кэш
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Логи
+*.log
+/tmp/
+
+# Docker
+docker-compose.override.yml
+
+# Ansible
+ansible/.retry
+
+# Тестовые артефакты
+.coverage
+htmlcov/
+.pytest_cache/

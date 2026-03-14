@@ -1,0 +1,72 @@
+---
+- name: Создание директории для приложения
+  file:
+    path: "{{ app_dir }}"
+    state: directory
+    mode: '0755'
+
+- name: Копирование файлов приложения
+  copy:
+    src: "{{ playbook_dir }}/../../app/"
+    dest: "{{ app_dir }}/"
+    mode: '0644'
+    directory_mode: '0755'
+
+- name: Копирование скриптов
+  copy:
+    src: "{{ playbook_dir }}/../../scripts/"
+    dest: "/scripts/"
+    mode: '0755'
+
+- name: Копирование docker-compose.yml
+  copy:
+    src: "{{ playbook_dir }}/../../docker-compose.yml"
+    dest: "{{ app_dir }}/docker-compose.yml"
+    mode: '0644'
+
+- name: Копирование Dockerfile
+  copy:
+    src: "{{ playbook_dir }}/../../Dockerfile"
+    dest: "{{ app_dir }}/Dockerfile"
+    mode: '0644'
+
+- name: Сборка Docker образа
+  community.docker.docker_image:
+    name: devops-task-api
+    source: build
+    build:
+      dockerfile: "{{ app_dir }}/Dockerfile"
+      pull: no
+    force_remove: yes
+
+- name: Запуск приложения через docker-compose
+  community.docker.docker_compose:
+    project_src: "{{ app_dir }}"
+    state: present
+    pull: no
+    recreate: always
+    restarted: yes
+
+- name: Ожидание запуска приложения
+  wait_for:
+    host: "localhost"
+    port: 5000
+    timeout: 60
+    state: started
+
+- name: Проверка здоровья приложения
+  uri:
+    url: http://localhost:5000/health
+    method: GET
+    status_code: 200
+  register: health_result
+  retries: 5
+  delay: 10
+  until: health_result is success
+
+- name: Вывод информации о запущенном приложении
+  debug:
+    msg:
+      - "Приложение успешно развернуто!"
+      - "API доступно по адресу: http://localhost:5000"
+      - "Документация: http://localhost:5000/docs"

@@ -1,0 +1,88 @@
+name: Build and Test
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+
+    - name: Install dependencies
+      run: |
+        pip install --upgrade pip
+        pip install -r app/requirements.txt
+
+    - name: Run tests with pytest
+      run: |
+        cd app
+        python -m pytest tests/test_app.py -v
+
+    - name: Run linter (flake8)
+      run: |
+        pip install flake8
+        flake8 app/main.py --max-line-length=100
+
+    - name: Install shellcheck
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y shellcheck
+
+    - name: Lint Bash scripts
+      run: |
+        shellcheck scripts/*.sh
+
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+
+    - name: Build Docker image
+      uses: docker/build-push-action@v4
+      with:
+        context: .
+        file: ./Dockerfile
+        push: false
+        tags: devops-task-api:latest
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+    - name: Test Docker image
+      run: |
+        docker run --rm devops-task-api:latest uvicorn --version
+
+    - name: Test container health
+      run: |
+        docker run -d -p 5000:5000 --name test-container devops-task-api:latest
+        sleep 5
+        curl -f http://localhost:5000/health
+        docker stop test-container
+        docker rm test-container
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Deploy to production (placeholder)
+      run: |
+        echo "Deploying to production..."
+        echo "Add your deployment steps here (e.g., SSH, kubectl, etc.)"

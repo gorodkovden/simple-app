@@ -1,0 +1,38 @@
+---
+- name: Развертывание DevOps Task API
+  hosts: all
+  become: yes
+  vars:
+    app_dir: /opt/devops-task-api
+    python_version: "3.11"
+
+  pre_tasks:
+    - name: Обновление кэша apt
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+      when: ansible_os_family == "Debian"
+
+  roles:
+    - docker
+    - app
+
+  post_tasks:
+    - name: Проверка статуса приложения
+      uri:
+        url: http://localhost:5000/health
+        method: GET
+        status_code: 200
+      register: health_check
+      ignore_errors: yes
+      when: "'app' in group_names"
+
+    - name: Вывод результата проверки здоровья
+      debug:
+        msg: "Приложение работает корректно!"
+      when: health_check is success
+
+    - name: Вывод ошибки если приложение не отвечает
+      debug:
+        msg: "Приложение не отвечает. Проверьте логи."
+      when: health_check is failed

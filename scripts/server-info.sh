@@ -10,6 +10,9 @@ NC='\033[0m' # No Color
 # Лог-файл
 LOG_FILE="/tmp/server-info-$(date +%Y%m%d-%H%M%S).log"
 
+# Определение PROJECT_DIR (директория проекта)
+PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
 # Функция для логирования
 log_message() {
     echo "$(date '+%Y-%m-%d %H:%M:%S') - $1" >> "$LOG_FILE"
@@ -24,25 +27,25 @@ print_header() {
 
 # Функция для вывода успешного статуса
 print_success() {
-    echo -e "${GREEN}✓${NC} $1"
+    echo -e "${GREEN}[OK]${NC} $1"
     log_message "SUCCESS: $1"
 }
 
 # Функция для вывода предупреждения
 print_warning() {
-    echo -e "${YELLOW}⚠${NC} $1"
+    echo -e "${YELLOW}[WARNING]${NC} $1"
     log_message "WARNING: $1"
 }
 
 # Функция для вывода ошибки
 print_error() {
-    echo -e "${RED}✗${NC} $1"
+    echo -e "${RED}[FAIL]${NC} $1"
     log_message "ERROR: $1"
 }
 
 # Функция для проверки команды
 check_command() {
-    if command -v $1 &> /dev/null; then
+    if command -v "$1" &> /dev/null; then
         print_success "$1 установлен"
         return 0
     else
@@ -53,7 +56,7 @@ check_command() {
 
 # Функция для проверки порта
 check_port() {
-    if lsof -Pi :$1 -sTCP:LISTEN -t >/dev/null 2>&1; then
+    if lsof -Pi :"$1" -sTCP:LISTEN -t >/dev/null 2>&1; then
         print_success "Порт $1 открыт и слушает"
         return 0
     else
@@ -71,7 +74,8 @@ check_http_service() {
     
     # Проверяем доступность через curl
     if curl --fail --silent --connect-timeout $timeout "$url" > /dev/null 2>&1; then
-        local response_time=$(curl -s -o /dev/null -w "%{time_total}" "$url")
+        local response_time
+        response_time=$(curl -s -o /dev/null -w "%{time_total}" "$url")
         print_success "$url доступен (время ответа: ${response_time}s)"
         log_message "HEALTH_CHECK_OK: $url (response time: ${response_time}s)"
         return 0
@@ -135,7 +139,7 @@ print_header "Диагностика сервера - $(date)"
 # 1. Информация о системе
 print_header "1. Информация о системе"
 echo "Hostname: $(hostname)"
-echo "OS: $(cat /etc/os-release | grep PRETTY_NAME | cut -d= -f2 | tr -d '\"')"
+echo "OS: $(grep PRETTY_NAME /etc/os-release | cut -d= -f2 | tr -d '\"')"
 echo "Kernel: $(uname -r)"
 echo "Uptime: $(uptime -p)"
 echo "Architecture: $(uname -m)"
@@ -145,7 +149,7 @@ print_header "2. Использование ресурсов"
 echo -e "\nCPU использование:"
 top -bn1 | grep "Cpu(s)" | awk '{print $2}' | cut -d'%' -f1
 echo -e "\nMemory использование:"
-free -h | grep "Mem:"
+free -h
 echo -e "\nDisk использование:"
 df -h / | tail -1
 
@@ -192,34 +196,8 @@ if command -v python3 &> /dev/null; then
     pip3 list 2>/dev/null | grep -E "(fastapi|uvicorn|pydantic)" || echo "Необходимые пакеты не найдены"
 fi
 
-# 8. Проверка файлов проекта
-print_header "8. Проверка файлов проекта"
-PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-echo "Директория проекта: $PROJECT_DIR"
-
-files_to_check=(
-    "app/main.py"
-    "app/requirements.txt"
-    "app/tests/test_app.py"
-    "scripts/server-info.sh"
-    "Dockerfile"
-    "docker-compose.yml"
-    "ansible/playbook.yml"
-    ".github/workflows/build.yml"
-    "README.md"
-    "Makefile"
-)
-
-for file in "${files_to_check[@]}"; do
-    if [ -f "$PROJECT_DIR/$file" ]; then
-        print_success "$file существует"
-    else
-        print_error "$file не найден"
-    fi
-done
-
-# 9. Проверка Ansible
-print_header "9. Проверка Ansible"
+# 8. Проверка Ansible
+print_header "8. Проверка Ansible"
 if command -v ansible &> /dev/null; then
     echo "Ansible версия: $(ansible --version | head -1)"
     if [ -f "$PROJECT_DIR/ansible/inventory.ini" ]; then
@@ -228,23 +206,9 @@ if command -v ansible &> /dev/null; then
     fi
 fi
 
-# 10. Проверка Git
-print_header "10. Проверка Git"
-if command -v git &> /dev/null; then
-    echo "Git версия: $(git --version)"
-    if [ -d "$PROJECT_DIR/.git" ]; then
-        echo "Git репозиторий инициализирован"
-        echo -e "\nТекущая ветка: $(git branch --show-current)"
-        echo -e "\nПоследние коммиты:"
-        git log --oneline -5 2>/dev/null
-    else
-        print_warning "Git репозиторий не инициализирован"
-    fi
-fi
-
-# 11. Проверка HTTP сервисов (если переданы URL)
+# 9. Проверка HTTP сервисов (если переданы URL)
 if [ ${#SERVICES_TO_CHECK[@]} -gt 0 ]; then
-    print_header "11. Проверка доступности HTTP сервисов"
+    print_header "9. Проверка доступности HTTP сервисов"
     ALL_SERVICES_OK=true
     
     for url in "${SERVICES_TO_CHECK[@]}"; do

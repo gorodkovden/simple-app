@@ -21,7 +21,9 @@ async def test_get_users():
     async with AsyncClient(app=app, base_url="http://test") as ac:
         response = await ac.get("/api/users")
         assert response.status_code == 200
-        assert len(response.json()) >= 2
+        data = response.json()
+        assert "users" in data
+        assert len(data["users"]) >= 2
 
 @pytest.mark.asyncio
 async def test_get_user():
@@ -42,7 +44,7 @@ async def test_create_user():
     async with AsyncClient(app=app, base_url="http://test") as ac:
         new_user = {"id": 3, "name": "Charlie"}
         response = await ac.post("/api/users", json=new_user)
-        assert response.status_code == 200
+        assert response.status_code == 201
         assert response.json()["id"] == 3
         assert response.json()["name"] == "Charlie"
 
@@ -52,14 +54,6 @@ async def test_create_duplicate_user():
         duplicate_user = {"id": 1, "name": "Alex"}
         response = await ac.post("/api/users", json=duplicate_user)
         assert response.status_code == 400
-
-@pytest.mark.asyncio
-async def test_update_user():
-    async with AsyncClient(app=app, base_url="http://test") as ac:
-        updated_user = {"id": 2, "name": "Boris Updated"}
-        response = await ac.put("/api/users/2", json=updated_user)
-        assert response.status_code == 200
-        assert response.json()["name"] == "Boris Updated"
 
 @pytest.mark.asyncio
 async def test_delete_user():

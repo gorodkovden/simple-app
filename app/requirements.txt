@@ -8,3 +8,4 @@ python-multipart==0.0.6
 flake8==7.0.0
 black==23.12.1
 shellcheck-py==0.9.0.2
+prometheus-fastapi-instrumentator==6.1.0

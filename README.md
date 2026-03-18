@@ -351,6 +351,7 @@ simple-app/
 ├── README.md                  # Эта документация
 ├── Dockerfile                 # Docker образ приложения
 ├── docker-compose.yml         # Docker Compose конфигурация
+├── prometheus.yml             # Конфигурация Prometheus
 ├── Makefile                   # Make цели для автоматизации
 │
 ├── app/                       # Исходный код приложения
@@ -360,6 +361,14 @@ simple-app/
 │   └── tests/
 │       ├── __init__.py
 │       └── test_app.py       # Тесты
+│
+├── grafana/                   # Конфигурация Grafana
+│   └── provisioning/
+│       ├── datasources/
+│       │   └── prometheus.yml   # Автоматическая настройка datasource
+│       └── dashboards/
+│           ├── dashboard.yml    # Конфигурация папки dashboards
+│           └── simple-app-dashboard.json  # Готовый дашборд
 │
 ├── ansible/                   # Ansible конфигурация
 │   ├── inventory.ini          # Инвентарь хостов
@@ -621,8 +630,43 @@ ansible-playbook -i ansible/inventory.ini ansible/playbook.yml
 ### Мониторинг
 
 - Health endpoint: `GET /health`
+- Prometheus метрики: `GET /metrics`
 - Логи Docker: `docker-compose logs -f`
 - Логи приложения: `docker-compose logs app`
+
+#### Prometheus + Grafana
+
+Проект включает полноценный стек мониторинга:
+
+**Запуск мониторинга:**
+```bash
+docker-compose up -d prometheus grafana
+```
+
+**Доступные эндпоинты:**
+- **Prometheus**: http://localhost:9090
+  - Проверка targets: `Status` → `Targets`
+  - Запросы метрик: `http://localhost:9090/graph`
+- **Grafana**: http://localhost:3000
+  - Логин: `admin`, пароль: `admin`
+  - Datasource Prometheus настраивается автоматически через provisioning
+  - Дашборд "Simple App Monitoring" загружается автоматически
+
+**Доступные метрики:**
+- `http_requests_total` - счетчик HTTP запросов
+- `http_request_duration_seconds` - гистограмма времени ответа
+- `process_cpu_seconds_total` - использование CPU
+- `process_resident_memory_bytes` - использование памяти
+- `python_info` - информация о Python
+
+**Структура provisioning:**
+```
+grafana/provisioning/
+├── datasources/prometheus.yml   # Автоматическая настройка datasource
+└── dashboards/
+    ├── dashboard.yml            # Конфигурация папки dashboards
+    └── simple-app-dashboard.json  # Дашборд с метриками
+```
 
 ### Разработка
 

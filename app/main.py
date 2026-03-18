@@ -2,9 +2,14 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from typing import List
 import uvicorn
+from prometheus_fastapi_instrumentator import Instrumentator
 
 
 app = FastAPI(title="simple-app", version="1.0.0")
+
+# Настройка Prometheus метрик
+instrumentator = Instrumentator()
+instrumentator.instrument(app).expose(app, endpoint="/metrics", include_in_schema=False)
 
 
 # Модель данных
